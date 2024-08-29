@@ -1,0 +1,28 @@
+{
+    /*  DISCLAIMER: 
+      "host.docker.internal:3333" will only work for stand alone docker app.
+       When using inside WSL, replace "host.docker.internal" with "windows machine IP".
+    */
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "cwd": "${workspaceFolder}",
+        "executable": "./build/Test_Motor.elf",
+        "name": "Debug STM32F103 openOCD",
+        "request": "launch",
+        "type": "cortex-debug",
+        "servertype": "openocd",
+        "runToEntryPoint": "main",
+        "showDevDebugOutput": "raw",
+        "gdbTarget": "localhost:3333",
+        "gdbPath": "arm-none-eabi-gdb",
+        "configFiles": [
+          "openocd_configs/stlink.cfg",
+          "openocd_configs/stm32l4x.cfg"
+
+        ],
+        "preLaunchTask": "build",
+        "postDebugTask": "kill-gdb-server",
+      }
+    ]
+}
