@@ -50,36 +50,47 @@ extern "C" {
 
 #define HALL_ARRAY_SIZE     1
 
+
 /**
-  * @brief  ENCODER class parameters definition
+ * @brief Hall signals struct
+ * 
+ */
+
+typedef struct
+{
+  uint16_t Hall_a;
+  uint16_t Hall_b;
+  uint16_t Hall_c;
+}HALL_Signals_t;
+
+typedef struct 
+{
+  float alpha; //α
+  float beta; // β
+}ClarkTransform_t;
+
+
+
+
+/**
+  * @brief  HALL class parameters definition
   */
 typedef struct
 {
-  SpeednPosFdbk_Handle_t _Super;                     /*!< SpeednPosFdbk  handle definition. */
-  TIM_TypeDef *TIMx;                                 /*!< Timer used for ENCODER sensor management.*/
-  uint32_t SpeedSamplingFreqUnit;                    /*!< Frequency at which motor speed is to be
-                                                          computed. It must be equal to the frequency
-                                                          at which function SPD_CalcAvrgMecSpeedUnit is called.*/
-  int32_t DeltaCapturesBuffer[ENC_SPEED_ARRAY_SIZE]; /*!< Buffer used to store captured variations of timer counter*/
-  uint32_t U32MAXdivPulseNumber;                     /*!< It stores U32MAX/hPulseNumber */
-  uint16_t SpeedSamplingFreqHz;                      /*!< Frequency (Hz) at which motor speed is to be computed. */
-
+  SpeednPosFdbk_Handle_t _Super;          /*!< SpeednPosFdbk  handle definition. */
+  uint32_t SpeedSamplingFreqUnit;         /*!< Frequency at which motor speed is to be computed. */
+  uint16_t SpeedSamplingFreqHz;           /*!< Frequency (Hz) at which motor speed is to be computed. */
+  ClarkTransform_t*clarkTransform;
+  HALL_Signals_t* hallSignals;
+  
   /* SW Settings */
-  uint16_t PulseNumber;                              /*!< Number of pulses per revolution, provided by each
-                                                          of the two encoder signals, multiplied by 4 */
-  volatile uint16_t TimerOverflowNb;                 /*!< Number of overflows occurred since
-                                                          last speed measurement event*/
-  uint16_t PreviousCapture;                          /*!< Timer counter value captured during
-                                                          previous speed measurement event*/
-  uint8_t SpeedBufferSize;                           /*!< Size of the buffer used to calculate the average
-                                                          speed. It must be <= 16.*/
-  bool SensorIsReliable;                             /*!< Flag to indicate sensor/decoding is not properly working.*/
-  uint32_t ICx_Filter;                                /*!< Input Capture filter selection */
+  bool SensorIsReliable;                  /*!< Flag to indicate sensor/decoding is not properly working. */
+  uint8_t SpeedBufferSize;                /* Smooth speed measurement and to maintain stability*/
   volatile uint8_t DeltaCapturesIndex;               /*!< Buffer index */
-  bool TimerOverflowError;                           /*!< true if the number of overflow  occurred is greater than
-                                                          'define' ENC_MAX_OVERFLOW_NB*/
-  uint16_t adcRawValue[HALL_ARRAY_SIZE];
+
+  uint16_t adcRawValue[HALL_ARRAY_SIZE];  /*!< Array to store raw ADC values from Hall sensor */
 } HALL_Handle_t;
+
 
 
 /* IRQ implementation of the TIMER ENCODER */
@@ -102,6 +113,8 @@ bool HALL_CalcAvrgMecSpeedUnit(HALL_Handle_t *pHandle, int16_t *pMecSpeedUnit);
 
 /* It set instantaneous rotor mechanical angle */
 void HALL_SetMecAngle(HALL_Handle_t *pHandle, int16_t hMecAngle);
+
+void HALL_ClarkeTransform(const HALL_Signals_t* hallSignals, ClarkTransform_t *clarkeTransform);
 
 
 /**

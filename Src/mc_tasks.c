@@ -144,6 +144,7 @@ __weak void MCboot( MCI_Handle_t* pMCIList[NBR_OF_MOTORS] )
     /*   Main speed sensor component initialization       */
     /******************************************************/
     ENC_Init (&ENCODER_M1);
+    HALL_Init(&HALL_M1);
 
     /******************************************************/
     /*   Main encoder alignment component initialization  */

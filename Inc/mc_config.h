@@ -64,6 +64,7 @@ extern PQD_MotorPowMeas_Handle_t PQD_MotorPowMeasM1;
 extern PQD_MotorPowMeas_Handle_t *pPQD_MotorPowMeasM1;
 extern VirtualSpeedSensor_Handle_t VirtualSpeedSensorM1;
 extern ENCODER_Handle_t ENCODER_M1;
+extern HALL_Handle_t HALL_M1;
 extern EncAlign_Handle_t EncAlignCtrlM1;
 extern RegConv_t VbusRegConv_M1;
 extern RDivider_Handle_t BusVoltageSensor_M1;
