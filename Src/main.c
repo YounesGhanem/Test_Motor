@@ -56,7 +56,7 @@ DMA_HandleTypeDef hdma_usart2_tx;
 osThreadId mediumFrequencyHandle;
 osThreadId safetyHandle;
 /* USER CODE BEGIN PV */
-
+ static uint16_t adcRawVal[3] = {0};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -258,6 +258,17 @@ static void MX_NVIC_Init(void)
   HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 }
 
+void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef *hadc)
+{
+  static uint16_t tempVal[3] = {0};
+  if (hadc->Instance == ADC2)
+  {
+    tempVal[0] = adcRawVal[0];
+    tempVal[1] = adcRawVal[1];
+    tempVal[2] = adcRawVal[2];
+  }
+}
+
 /**
   * @brief ADC1 Initialization Function
   * @param None
@@ -432,7 +443,8 @@ static void MX_ADC2_Init(void)
 
   /** Configure Regular Channel
   */
-  sConfig.Rank = ADC_REGULAR_RANK_2;
+sConfig.Channel = ADC_CHANNEL_2; // Change to ADC_CHANNEL_2
+sConfig.Rank = ADC_REGULAR_RANK_2;
   if (HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -440,13 +452,14 @@ static void MX_ADC2_Init(void)
 
   /** Configure Regular Channel
   */
-  sConfig.Rank = ADC_REGULAR_RANK_3;
+sConfig.Channel = ADC_CHANNEL_3; // Change to ADC_CHANNEL_3
+sConfig.Rank = ADC_REGULAR_RANK_3;
   if (HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK)
   {
     Error_Handler();
   }
   /* USER CODE BEGIN ADC2_Init 2 */
-  static uint16_t adcRawVal[3] = {0};
+ 
 
   if (HAL_ADC_Start_DMA(&hadc2, (uint32_t)adcRawVal, 3) != HAL_OK)
   {

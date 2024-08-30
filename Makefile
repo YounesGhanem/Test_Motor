@@ -22,7 +22,7 @@ TARGET = Test_Motor
 # debug build?
 DEBUG = 1
 # optimization
-OPT = -O3
+OPT = -O0
 
 
 #######################################
