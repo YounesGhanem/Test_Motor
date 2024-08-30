@@ -3,7 +3,8 @@
         "main.h": "c",
         "cmsis_os.h": "c",
         "motorcontrol.h": "c",
-        "random": "c"
+        "random": "c",
+        "mc_config.h": "c"
     },
     "cortex-debug.variableUseNaturalFormat": false
 }

@@ -39,6 +39,7 @@
 #include "r3_1_l4xx_pwm_curr_fdbk.h"
 
 #include "encoder_speed_pos_fdbk.h"
+#include "hall_speed_pos_fdbk.h"
 #include "enc_align_ctrl.h"
 
 #include "ramp_ext_mngr.h"

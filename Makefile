@@ -96,6 +96,7 @@ MCSDK_v6.2.1-Full/MotorControl/MCSDK/MCLib/Any/Src/circle_limitation.c \
 MCSDK_v6.2.1-Full/MotorControl/MCSDK/MCLib/Any/Src/digital_output.c \
 MCSDK_v6.2.1-Full/MotorControl/MCSDK/MCLib/Any/Src/enc_align_ctrl.c \
 MCSDK_v6.2.1-Full/MotorControl/MCSDK/MCLib/Any/Src/encoder_speed_pos_fdbk.c \
+MCSDK_v6.2.1-Full/MotorControl/MCSDK/MCLib/Any/Src/hall_speed_pos_fdbk.c \
 MCSDK_v6.2.1-Full/MotorControl/MCSDK/MCLib/Any/Src/trajectory_ctrl.c \
 MCSDK_v6.2.1-Full/MotorControl/MCSDK/MCLib/Any/Src/ntc_temperature_sensor.c \
 MCSDK_v6.2.1-Full/MotorControl/MCSDK/MCLib/Any/Src/open_loop.c \
