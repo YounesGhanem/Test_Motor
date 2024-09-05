@@ -250,6 +250,7 @@ ENCODER_Handle_t ENCODER_M1 =
   .ICx_Filter                  = M1_ENC_IC_FILTER_LL,
 };
 
+//TODO 
 HALL_Handle_t HALL_M1 =
 {
   ._Super =
@@ -262,12 +263,12 @@ HALL_Handle_t HALL_M1 =
     .hMeasurementFrequency     = TF_REGULATION_RATE_SCALED,
     .DPPConvFactor             = DPP_CONV_FACTOR,
   },
-
-.clarkTransform = NULL,
-.hallSignals = NULL,
+  .clarkTransform = NULL,
+  .hallSignals = NULL,
+  .rotorAngle = 0,
+  .previousRotorAngle = 0,
   //.PulseNumber                 = M1_ENCODER_PPR * 4,
   .SpeedSamplingFreqHz         = MEDIUM_FREQUENCY_TASK_RATE,
-
   .SpeedBufferSize             = ENC_AVERAGING_FIFO_DEPTH,
   //.TIMx                        = TIM3,
   //.ICx_Filter                  = M1_ENC_IC_FILTER_LL,
@@ -280,10 +281,20 @@ EncAlign_Handle_t EncAlignCtrlM1 =
 {
   .hEACFrequencyHz = MEDIUM_FREQUENCY_TASK_RATE,
   .hFinalTorque    = FINAL_I_ALIGNMENT,
+  .hElAngle        = ALIGNMENT_ANGLE_S16,             // Here , defining alignment angle
+  .hDurationms     = M1_ALIGNMENT_DURATION,
+  .bElToMecRatio   = POLE_PAIR_NUM,
+};
+
+HallAlign_Handle_t HallAlignCtrlM1 = 
+{
+  .hEACFrequencyHz = MEDIUM_FREQUENCY_TASK_RATE,
+  .hFinalTorque    = FINAL_I_ALIGNMENT,
   .hElAngle        = ALIGNMENT_ANGLE_S16,
   .hDurationms     = M1_ALIGNMENT_DURATION,
   .bElToMecRatio   = POLE_PAIR_NUM,
 };
+
 
 /**
   * temperature sensor parameters Motor 1.

@@ -33,6 +33,7 @@ extern "C" {
 #include "mc_type.h"
 #include "speed_torq_ctrl.h"
 #include "enc_align_ctrl.h"
+#include "hall_align_ctrl.h"
 
 #define RADTOS16 10430.378350470452725f             /* 2^15/Pi */
 
@@ -107,6 +108,7 @@ typedef struct
 
   ENCODER_Handle_t *pENC;              /**< @brief Pointer on handler of the current instance of the encoder
                                                    component */
+  HALL_Handle_t* pHALL;               
   SpeednTorqCtrl_Handle_t *pSTC;       /**< @brief Speed and torque controller object used by the Position Regulator */
   PID_Handle_t *PIDPosRegulator;       /**< @brief PID controller object used by the Position Regulator */
 } PosCtrl_Handle_t;
@@ -115,7 +117,7 @@ typedef struct
 
 /* Initializes Trajectory Control component handler */
 void TC_Init(PosCtrl_Handle_t *pHandle, PID_Handle_t *pPIDPosReg, SpeednTorqCtrl_Handle_t *pSTC,
-             ENCODER_Handle_t *pENC);
+             HALL_Handle_t *pHall);  // TODO
 
 /* Configures the trapezoidal speed trajectory */
 bool TC_MoveCommand(PosCtrl_Handle_t *pHandle, float startingAngle, float angleStep, float movementDuration);

@@ -56,7 +56,8 @@
   * @param  pENC handler of the current instance of the EncAlignCtrl component.
  
   */
-void TC_Init(PosCtrl_Handle_t *pHandle, PID_Handle_t *pPIDPosReg, SpeednTorqCtrl_Handle_t *pSTC, ENCODER_Handle_t *pENC)
+//void TC_Init(PosCtrl_Handle_t *pHandle, PID_Handle_t *pPIDPosReg, SpeednTorqCtrl_Handle_t *pSTC,  ENCODER_Handle_t* pENC )
+void TC_Init(PosCtrl_Handle_t *pHandle, PID_Handle_t *pPIDPosReg, SpeednTorqCtrl_Handle_t *pSTC, HALL_Handle_t *pHALL)
 {
 
   pHandle->MovementDuration = 0.0f;
@@ -84,7 +85,7 @@ void TC_Init(PosCtrl_Handle_t *pHandle, PID_Handle_t *pPIDPosReg, SpeednTorqCtrl
   pHandle->PositionControlRegulation = DISABLE;
   pHandle->PositionCtrlStatus = TC_READY_FOR_COMMAND;
 
-  pHandle->pENC = pENC;
+  pHandle->pHALL = pHALL;
   pHandle->pSTC = pSTC;
   pHandle->PIDPosRegulator = pPIDPosReg;
 

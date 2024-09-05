@@ -279,7 +279,7 @@ __weak bool VSS_CalcAvrgMecSpeedUnit(VirtualSpeedSensor_Handle_t *pHandle, int16
   * - Called during @ref RevUpCtrl "Rev-Up Control" and
   * @ref EncAlignCtrl "Encoder Alignment Controller procedure" initialization.
   */
-__weak void VSS_SetMecAngle(VirtualSpeedSensor_Handle_t *pHandle, int16_t hMecAngle)
+__weak void VSS_SetMecAngle(VirtualSpeedSensor_Handle_t *pHandle, int16_t hMecAngle)  
 {
 #ifdef NULL_PTR_CHECK_VIR_SPD_SEN
   if (MC_NULL == pHandle)

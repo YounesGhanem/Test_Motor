@@ -57,6 +57,7 @@
 
 static FOCVars_t FOCVars[NBR_OF_MOTORS];
 static EncAlign_Handle_t *pEAC[NBR_OF_MOTORS];
+static HallAlign_Handle_t* pHAC[NBR_OF_MOTORS];
 
 static PWMC_Handle_t *pwmcHandle[NBR_OF_MOTORS];
 //cstat !MISRAC2012-Rule-8.9_a
@@ -143,25 +144,32 @@ __weak void MCboot( MCI_Handle_t* pMCIList[NBR_OF_MOTORS] )
     /******************************************************/
     /*   Main speed sensor component initialization       */
     /******************************************************/
-    ENC_Init (&ENCODER_M1);
+    //ENC_Init (&ENCODER_M1);
     HALL_Init(&HALL_M1);
 
     /******************************************************/
     /*   Main encoder alignment component initialization  */
     /******************************************************/
-    EAC_Init(&EncAlignCtrlM1,pSTC[M1],&VirtualSpeedSensorM1,&ENCODER_M1);
-    pEAC[M1] = &EncAlignCtrlM1;
+    // EAC_Init(&EncAlignCtrlM1,pSTC[M1],&VirtualSpeedSensorM1,&ENCODER_M1);
+    // pEAC[M1] = &EncAlignCtrlM1;
+
+
+
+    HAC_Init(&HallAlignCtrlM1, pSTC[M1], &VirtualSpeedSensorM1, &HALL_M1);
+    pHAC[M1] = &HallAlignCtrlM1;
 
     /******************************************************/
     /*   Position Control component initialization        */
     /******************************************************/
     PID_HandleInit(&PID_PosParamsM1);
-    TC_Init(&PosCtrlM1, &PID_PosParamsM1, &SpeednTorqCtrlM1, &ENCODER_M1);
+    //TC_Init(&PosCtrlM1, &PID_PosParamsM1, &SpeednTorqCtrlM1, &ENCODER_M1);   
+    TC_Init(&PosCtrlM1, &PID_PosParamsM1, &SpeednTorqCtrlM1, &HALL_M1);     //Initalize trajectory handle
 
     /******************************************************/
     /*   Speed & torque component initialization          */
     /******************************************************/
-    STC_Init(pSTC[M1],&PIDSpeedHandle_M1, &ENCODER_M1._Super);
+    //STC_Init(pSTC[M1],&PIDSpeedHandle_M1, &ENCODER_M1._Super);
+    STC_Init(pSTC[M1],&PIDSpeedHandle_M1, &HALL_M1._Super);  //PID initialize
 
     /****************************************************/
     /*   Virtual speed sensor component initialization  */
@@ -352,7 +360,8 @@ __weak void TSK_MediumFrequencyTaskM1(void)
   /* USER CODE END MediumFrequencyTask M1 0 */
 
   int16_t wAux = 0;
-  (void)ENC_CalcAvrgMecSpeedUnit(&ENCODER_M1, &wAux);
+  //(void)ENC_CalcAvrgMecSpeedUnit(&ENCODER_M1, &wAux);
+  (void)HALL_CalcAvrgMecSpeedUnit(&HALL_M1, &wAux);//average speed in tenth of Hz
   PQD_CalcElMotorPower(pMPM[M1]);
 
   if (MCI_GetCurrentFaults(&Mci[M1]) == MC_NO_FAULTS)
@@ -433,24 +442,41 @@ __weak void TSK_MediumFrequencyTaskM1(void)
               R3_1_SwitchOffPWM(pwmcHandle[M1]);
               FOCVars[M1].bDriveInput = EXTERNAL;
               STC_SetSpeedSensor( pSTC[M1], &VirtualSpeedSensorM1._Super );
-              ENC_Clear(&ENCODER_M1);
+              HALL_Clear(&HALL_M1);
+              //ENC_Clear(&ENCODER_M1);
               FOC_Clear( M1 );
 
-              if (EAC_IsAligned(&EncAlignCtrlM1) == false)
+              if (HAC_IsAligned(&HallAlignCtrlM1) == false)
               {
-                EAC_StartAlignment(&EncAlignCtrlM1);
+                HAC_StartAlignment(&HallAlignCtrlM1);
                 Mci[M1].State = ALIGNMENT;
               }
               else
               {
                 STC_SetControlMode(pSTC[M1], MCM_SPEED_MODE);
-                STC_SetSpeedSensor(pSTC[M1], &ENCODER_M1._Super);
+                STC_SetSpeedSensor(pSTC[M1], &HALL_M1._Super);
                 FOC_InitAdditionalMethods(M1);
                 FOC_CalcCurrRef(M1);
                 STC_ForceSpeedReferenceToCurrentSpeed(pSTC[M1]); /* Init the reference speed to current speed */
                 MCI_ExecBufferedCommands(&Mci[M1]); /* Exec the speed ramp after changing of the speed sensor */
-                Mci[M1].State = RUN;
+                Mci[M1].State = RUN;  
               }
+
+              // if (EAC_IsAligned(&EncAlignCtrlM1) == false)
+              // {
+              //   EAC_StartAlignment(&EncAlignCtrlM1);
+              //   Mci[M1].State = ALIGNMENT;
+              // }
+              // else
+              // {
+              //   STC_SetControlMode(pSTC[M1], MCM_SPEED_MODE);
+              //   STC_SetSpeedSensor(pSTC[M1], &ENCODER_M1._Super);
+              //   FOC_InitAdditionalMethods(M1);
+              //   FOC_CalcCurrRef(M1);
+              //   STC_ForceSpeedReferenceToCurrentSpeed(pSTC[M1]); /* Init the reference speed to current speed */
+              //   MCI_ExecBufferedCommands(&Mci[M1]); /* Exec the speed ramp after changing of the speed sensor */
+              //   Mci[M1].State = RUN;
+              // }
               PWMC_SwitchOnPWM(pwmcHandle[M1]);
             }
             else
@@ -469,9 +495,11 @@ __weak void TSK_MediumFrequencyTaskM1(void)
           }
           else
           {
-            bool isAligned = EAC_IsAligned(&EncAlignCtrlM1);
-            bool EACDone = EAC_Exec(&EncAlignCtrlM1);
-            if ((isAligned == false)  && (EACDone == false))
+           //bool isAligned = EAC_IsAligned(&EncAlignCtrlM1);
+            bool isAligned = HAC_IsAligned(&HallAlignCtrlM1);
+            //bool EACDone = EAC_Exec(&EncAlignCtrlM1);
+            bool HACDone = HAC_Exec(&HallAlignCtrlM1);
+            if ((isAligned == false)  && (HACDone == false))
             {
               qd_t IqdRef;
               IqdRef.q = 0;
@@ -993,7 +1021,7 @@ void startMediumFrequencyTask(void const * argument)
   for(;;)
   {
     /* Delay of 500us */
-    vTaskDelay(1);
+    vTaskDelay(1);                //every 1ms
     MC_RunMotorControlTasks();
   }
   /* USER CODE END MF task 1 */

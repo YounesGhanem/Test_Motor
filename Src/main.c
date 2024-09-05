@@ -260,12 +260,16 @@ static void MX_NVIC_Init(void)
 
 void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef *hadc)
 {
-  static uint16_t tempVal[3] = {0};
+  // static uint16_t tempVal[3] = {0};
   if (hadc->Instance == ADC2)
   {
-    tempVal[0] = adcRawVal[0];
-    tempVal[1] = adcRawVal[1];
-    tempVal[2] = adcRawVal[2];
+    // tempVal[0] = adcRawVal[0];
+    // tempVal[1] = adcRawVal[1];
+    // tempVal[2] = adcRawVal[2];
+  }
+  else
+  {
+
   }
 }
 
@@ -461,7 +465,7 @@ sConfig.Rank = ADC_REGULAR_RANK_3;
   /* USER CODE BEGIN ADC2_Init 2 */
  
 
-  if (HAL_ADC_Start_DMA(&hadc2, (uint32_t)adcRawVal, 3) != HAL_OK)
+  if (HAL_ADC_Start_DMA(&hadc2, (uint32_t*)adcRawVal, 3) != HAL_OK)
   {
     Error_Handler();
   }

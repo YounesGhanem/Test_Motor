@@ -41,6 +41,7 @@
 #include "encoder_speed_pos_fdbk.h"
 #include "hall_speed_pos_fdbk.h"
 #include "enc_align_ctrl.h"
+#include "hall_align_ctrl.h"
 
 #include "ramp_ext_mngr.h"
 #include "circle_limitation.h"
@@ -53,6 +54,7 @@ extern PID_Handle_t PIDSpeedHandle_M1;
 extern PID_Handle_t PIDIqHandle_M1;
 extern PID_Handle_t PIDIdHandle_M1;
 extern RegConv_t TempRegConv_M1;
+extern RegConv_t VbusRegConv_M1;
 extern NTC_Handle_t TempSensor_M1;
 extern PID_Handle_t PID_PosParamsM1;
 extern PosCtrl_Handle_t PosCtrlM1;
@@ -66,7 +68,7 @@ extern VirtualSpeedSensor_Handle_t VirtualSpeedSensorM1;
 extern ENCODER_Handle_t ENCODER_M1;
 extern HALL_Handle_t HALL_M1;
 extern EncAlign_Handle_t EncAlignCtrlM1;
-extern RegConv_t VbusRegConv_M1;
+extern HallAlign_Handle_t HallAlignCtrlM1;
 extern RDivider_Handle_t BusVoltageSensor_M1;
 extern CircleLimitation_Handle_t CircleLimitationM1;
 extern RampExtMngr_Handle_t RampExtMngrHFParamsM1;

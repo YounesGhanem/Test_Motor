@@ -297,7 +297,7 @@ __weak bool ENC_CalcAvrgMecSpeedUnit(ENCODER_Handle_t *pHandle, int16_t *pMecSpe
     {
       wOverallAngleVariation += pHandle->DeltaCapturesBuffer[bBufferIndex];
     }
-    wtemp1 = wOverallAngleVariation * ((int32_t)pHandle->SpeedSamplingFreqUnit);
+    wtemp1 = wOverallAngleVariation * ((int32_t)pHandle->SpeedSamplingFreqUnit);    //Variation in second
     wtemp2 = ((int32_t)pHandle->PulseNumber) * ((int32_t)pHandle->SpeedBufferSize);
     wtemp1 = ((0 == wtemp2) ? wtemp1 : (wtemp1 / wtemp2));
 
@@ -371,8 +371,8 @@ __weak void ENC_SetMecAngle(ENCODER_Handle_t *pHandle, int16_t hMecAngle)
     uint16_t hMecAngleuint;
     int16_t localhMecAngle = hMecAngle;
 
-    pHandle->_Super.hMecAngle = localhMecAngle;
-    pHandle->_Super.hElAngle = localhMecAngle * (int16_t)pHandle->_Super.bElToMecRatio;
+    pHandle->_Super.hMecAngle = localhMecAngle;           // instantaneous measure of rotor mechanical angle in s16
+    pHandle->_Super.hElAngle = localhMecAngle * (int16_t)pHandle->_Super.bElToMecRatio;  // Estimated electrical angle reported by the implemented speed and position method
     if (localhMecAngle < 0)
     {
       localhMecAngle *= -1;
@@ -383,7 +383,7 @@ __weak void ENC_SetMecAngle(ENCODER_Handle_t *pHandle, int16_t hMecAngle)
       hMecAngleuint = (uint16_t)localhMecAngle;
     }
 
-    hAngleCounts = (uint16_t)((((uint32_t)hMecAngleuint) * ((uint32_t)pHandle->PulseNumber)) / 65535U);
+    hAngleCounts = (uint16_t)((((uint32_t)hMecAngleuint) * ((uint32_t)pHandle->PulseNumber)) / 65535U);  // nombre d'impulsions 
 
     TIMx->CNT = (uint16_t)hAngleCounts;
 #ifdef NULL_PTR_CHECK_ENC_SPD_POS_FDB

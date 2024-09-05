@@ -46,7 +46,8 @@ extern "C" {
 
 #define GPIO_NoRemap_TIMx ((uint32_t)(0))
 #define ENC_DMA_PRIORITY DMA_Priority_High
-#define ENC_SPEED_ARRAY_SIZE  ((uint8_t)16)    /* 2^4 */
+//#define ENC_SPEED_ARRAY_SIZE  ((uint8_t)16)    /* 2^4 */
+#define HALL_SPEED_ARRAY_SIZE  ((uint8_t)16)    /* 2^4 */
 
 #define HALL_ARRAY_SIZE     1
 
@@ -82,12 +83,13 @@ typedef struct
   uint16_t SpeedSamplingFreqHz;           /*!< Frequency (Hz) at which motor speed is to be computed. */
   ClarkTransform_t*clarkTransform;
   HALL_Signals_t* hallSignals;
-  
+  int16_t rotorAngle;  
+  uint16_t previousRotorAngle;
   /* SW Settings */
   bool SensorIsReliable;                  /*!< Flag to indicate sensor/decoding is not properly working. */
   uint8_t SpeedBufferSize;                /* Smooth speed measurement and to maintain stability*/
-  volatile uint8_t DeltaCapturesIndex;               /*!< Buffer index */
-
+  volatile uint8_t AngleDeltaCapturesIndex;               /*!< Buffer index */
+  int32_t AngleCapturesBuffer[HALL_SPEED_ARRAY_SIZE];             /*!< Buffer index */
   uint16_t adcRawValue[HALL_ARRAY_SIZE];  /*!< Array to store raw ADC values from Hall sensor */
 } HALL_Handle_t;
 

@@ -70,7 +70,7 @@ __weak void HALL_Init(HALL_Handle_t *pHandle)
     else
     {
 #endif
-       pHandle->clarkTransform = malloc(sizeof(ClarkTransform_t));
+pHandle->clarkTransform = malloc(sizeof(ClarkTransform_t));
 if (pHandle->clarkTransform == NULL)
 {
     // Gérer l'erreur d'allocation mémoire
@@ -89,7 +89,7 @@ if (pHandle->hallSignals == NULL)
         }
 
         /* Configure sample frequency */
-        pHandle->SpeedSamplingFreqUnit = ((uint32_t)pHandle->SpeedSamplingFreqHz * (uint32_t)SPEED_UNIT);
+        pHandle->SpeedSamplingFreqUnit = ((uint32_t)pHandle->SpeedSamplingFreqHz * (uint32_t)SPEED_UNIT);  //1000 x 10
 
         /* Falg inits */
         pHandle->SensorIsReliable = true;  
@@ -187,36 +187,54 @@ __weak bool HALL_CalcAvrgMecSpeedUnit(HALL_Handle_t *pHandle, int16_t *pMecSpeed
 #endif
         int32_t wOverallAngleVariation = 0;
         uint8_t bBufferIndex;
-        uint8_t bBufferSize = pHandle->SpeedBufferSize;  //16
+        uint8_t bBufferSize = pHandle->SpeedBufferSize;  
+        int32_t wtemp1;
+       
+
+        pHandle->AngleCapturesBuffer[pHandle->AngleDeltaCapturesIndex] = pHandle->rotorAngle - pHandle->previousRotorAngle;  // TODO : Unit ?
 
         /* Asum up ADC values to calculate average speed */
         for (bBufferIndex = 0U; bBufferIndex < bBufferSize; bBufferIndex++)
         {
-            wOverallAngleVariation += pHandle->adcRawValue[bBufferIndex];
+            //wOverallAngleVariation += pHandle->adcRawValue[bBufferIndex];
+            //wOverallAngleVariation += pHandle->DeltaCapturesBuffer[bBufferIndex];
+            wOverallAngleVariation +=pHandle->AngleCapturesBuffer[bBufferIndex];
+
         }
 
-        /* Calcul de la vitesse mécanique moyenne */
-        int32_t wtemp1 = wOverallAngleVariation * ((int32_t)pHandle->SpeedSamplingFreqUnit);
-        int32_t wtemp2 = 0; //((int32_t)pHandle->PulseNumber) * ((int32_t)pHandle->SpeedBufferSize);
-        wtemp1 = ((0 == wtemp2) ? wtemp1 : (wtemp1 / wtemp2));
+        /* Calculate average speed */
+      wtemp1 = wOverallAngleVariation * ((int32_t)pHandle->SpeedSamplingFreqUnit);    //variation per second
+      wtemp1 /= (int32_t)(pHandle->SpeedBufferSize);          //rev/s -> Hz (tenth of Hz)
 
-        *pMecSpeedUnit = (int16_t)wtemp1;
 
-        /* Calcul de l'accélération mécanique moyenne */
+
+      *pMecSpeedUnit = (int16_t)wtemp1; // tenth of Hz
+
+      /* Computes & stores average mechanical acceleration */
         pHandle->_Super.hMecAccelUnitP = (int16_t)(wtemp1 - pHandle->_Super.hAvrMecSpeedUnit);
 
-        /* Stockage de la vitesse mécanique moyenne */
+      /* Stores average mechanical speed */
         pHandle->_Super.hAvrMecSpeedUnit = (int16_t)wtemp1;
 
-        /* Mise à jour de l'index du buffer */
-        pHandle->DeltaCapturesIndex++;
-        if (pHandle->DeltaCapturesIndex >= pHandle->SpeedBufferSize)
-        {
-            pHandle->DeltaCapturesIndex = 0U;
-        }
+      /* Computes and store tje instantaneous electrical speed[dpp], var wtemp1*/
+      wtemp1 = pHandle->AngleCapturesBuffer[pHandle->AngleDeltaCapturesIndex] * ((int32_t)pHandle->SpeedSamplingFreqHz) * ((int32_t)pHandle->_Super.bElToMecRatio);
+      wtemp1 *= ((int32_t)pHandle->_Super.DPPConvFactor);
+      wtemp1 /= ((int32_t)pHandle->_Super.hMeasurementFrequency);
 
-        /* Vérification de la fiabilité du capteur */
-        bReliability = SPD_IsMecSpeedReliable(&pHandle->_Super, pMecSpeedUnit);
+
+
+      pHandle->previousRotorAngle = pHandle->rotorAngle;
+
+
+      /* Update buffer index */
+      pHandle->AngleDeltaCapturesIndex++;
+      if (pHandle->AngleDeltaCapturesIndex >= pHandle->SpeedBufferSize)
+      {
+        pHandle->AngleDeltaCapturesIndex = 0U;
+      }
+
+      /* Vérification de la fiabilité du capteur */
+      bReliability = SPD_IsMecSpeedReliable(&pHandle->_Super, pMecSpeedUnit);
 
 #ifdef NULL_PTR_CHECK_ENC_SPD_POS_FDB
     }
@@ -231,6 +249,9 @@ __weak bool HALL_CalcAvrgMecSpeedUnit(HALL_Handle_t *pHandle, int16_t *pMecSpeed
   * @param  pHandle: handler of the current instance of the encoder component
   * @param  hMecAngle new value of rotor mechanical angle in [s16degree](measurement_units.md) format.
   */
+
+// S16degree  1turn = 65536 s16 degrees
+// 1 s16 corrresponds to 360 / 65536 = 0.005493 degree or 2*pi / 655536 radians
 __weak void HALL_SetMecAngle(HALL_Handle_t *pHandle, int16_t hMecAngle)
 {
 #ifdef NULL_PTR_CHECK_ENC_SPD_POS_FDB
@@ -243,9 +264,9 @@ __weak void HALL_SetMecAngle(HALL_Handle_t *pHandle, int16_t hMecAngle)
 #endif
     //TIM_TypeDef *TIMx = pHandle->TIMx;
 
-    //uint16_t hAngleCounts;  //TODO
-    uint16_t hMecAngleuint;  // TODO
-    int16_t localhMecAngle = hMecAngle;
+
+    int16_t localhMecAngle = hMecAngle;  // Instantaneous measure of rotor mechanical angle
+    uint16_t hMecAngleuint;
 
     pHandle->_Super.hMecAngle = localhMecAngle;
     pHandle->_Super.hElAngle = localhMecAngle * (int16_t)pHandle->_Super.bElToMecRatio;

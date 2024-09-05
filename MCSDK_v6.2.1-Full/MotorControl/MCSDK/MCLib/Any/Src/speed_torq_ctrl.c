@@ -75,7 +75,7 @@ __weak void STC_Init(SpeednTorqCtrl_Handle_t *pHandle, PID_Handle_t *pPI, Speedn
     pHandle->PISpeed = pPI;
     pHandle->SPD = SPD_Handle;
     pHandle->Mode = pHandle->ModeDefault;
-    pHandle->SpeedRefUnitExt = ((int32_t)pHandle->MecSpeedRefUnitDefault) * 65536;
+    pHandle->SpeedRefUnitExt = ((int32_t)pHandle->MecSpeedRefUnitDefault) * 65536;  // current mechanical rotor speed reference expressed in SPEED_UNIT multiplied by 65536
     pHandle->TorqueRef = ((int32_t)pHandle->TorqueRefDefault) * 65536;
     pHandle->TargetFinal = 0;
     pHandle->RampRemainingStep = 0U;
