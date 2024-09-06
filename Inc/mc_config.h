@@ -67,7 +67,7 @@ extern PQD_MotorPowMeas_Handle_t *pPQD_MotorPowMeasM1;
 extern VirtualSpeedSensor_Handle_t VirtualSpeedSensorM1;
 extern ENCODER_Handle_t ENCODER_M1;
 extern HALL_Handle_t HALL_M1;
-extern EncAlign_Handle_t EncAlignCtrlM1;
+//extern EncAlign_Handle_t EncAlignCtrlM1;
 extern HallAlign_Handle_t HallAlignCtrlM1;
 extern RDivider_Handle_t BusVoltageSensor_M1;
 extern CircleLimitation_Handle_t CircleLimitationM1;

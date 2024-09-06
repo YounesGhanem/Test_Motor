@@ -56,7 +56,7 @@
 /* Private variables----------------------------------------------------------*/
 
 static FOCVars_t FOCVars[NBR_OF_MOTORS];
-static EncAlign_Handle_t *pEAC[NBR_OF_MOTORS];
+//static EncAlign_Handle_t *pEAC[NBR_OF_MOTORS];
 static HallAlign_Handle_t* pHAC[NBR_OF_MOTORS];
 
 static PWMC_Handle_t *pwmcHandle[NBR_OF_MOTORS];
@@ -502,15 +502,16 @@ __weak void TSK_MediumFrequencyTaskM1(void)
             if ((isAligned == false)  && (HACDone == false))
             {
               qd_t IqdRef;
-              IqdRef.q = 0;
-              IqdRef.d = STC_CalcTorqueReference(pSTC[M1]);
-              FOCVars[M1].Iqdref = IqdRef;
+              IqdRef.q = 0;   // fixed to 0, you don't want to generate torque
+              IqdRef.d = STC_CalcTorqueReference(pSTC[M1]);  // create statoric flux to force rotor to align in fix position
+              FOCVars[M1].Iqdref = IqdRef;  // apply  physically reference current to force rotor alignment. The FOC module will take over to generate command signal
             }
             else
             {
               R3_1_SwitchOffPWM( pwmcHandle[M1] );
               STC_SetControlMode(pSTC[M1], MCM_SPEED_MODE);
-              STC_SetSpeedSensor(pSTC[M1], &ENCODER_M1._Super);
+              //STC_SetSpeedSensor(pSTC[M1], &ENCODER_M1._Super);
+              STC_SetSpeedSensor(pSTC[M1], &HALL_M1._Super);
               FOC_Clear(M1);
               R3_1_TurnOnLowSides(pwmcHandle[M1],M1_CHARGE_BOOT_CAP_DUTY_CYCLES);
               TSK_SetStopPermanencyTimeM1(STOPPERMANENCY_TICKS);
@@ -592,7 +593,8 @@ __weak void TSK_MediumFrequencyTaskM1(void)
           {
             if (TSK_StopPermanencyTimeHasElapsedM1())
             {
-              ENC_Clear(&ENCODER_M1);
+              //ENC_Clear(&ENCODER_M1);
+              HALL_Clear(&HALL_M1);
               R3_1_SwitchOnPWM(pwmcHandle[M1]);
               TC_EncAlignmentCommand(pPosCtrl[M1]);
               FOC_InitAdditionalMethods(M1);
@@ -793,7 +795,8 @@ __weak uint8_t TSK_HighFrequencyTask(void)
 
   /* USER CODE END HighFrequencyTask 0 */
 
-  (void)ENC_CalcAngle(&ENCODER_M1);   /* If not sensorless then 2nd parameter is MC_NULL */
+  //(void)ENC_CalcAngle(&ENCODER_M1);   /* If not sensorless then 2nd parameter is MC_NULL */
+  (void)HALL_CalcAngle(&HALL_M1);
 
   /* USER CODE BEGIN HighFrequencyTask SINGLEDRIVE_1 */
 
@@ -939,14 +942,24 @@ __weak void TSK_SafetyTask_PWMOFF(uint8_t bMotor)
   if (MCI_GetFaultState(&Mci[bMotor]) != (uint32_t)MC_NO_FAULTS)
   {
     /* Reset Encoder state */
-    if (pEAC[bMotor] != MC_NULL)
+    // if (pEAC[bMotor] != MC_NULL)
+    // {
+    //   EAC_SetRestartState(pEAC[bMotor], false);
+    // }
+    // else
+    // {
+    //   /* Nothing to do */
+    // }
+    if (pHAC[bMotor] != MC_NULL)
     {
-      EAC_SetRestartState(pEAC[bMotor], false);
+      HAC_SetRestartState(pHAC[bMotor], false);
     }
     else
     {
-      /* Nothing to do */
+
     }
+
+
     PWMC_SwitchOffPWM(pwmcHandle[bMotor]);
     if (MCPA_UART_A.Mark != 0U)
     {

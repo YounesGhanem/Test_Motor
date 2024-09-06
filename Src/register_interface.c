@@ -918,13 +918,13 @@ uint8_t RI_GetRegisterGlobal(uint16_t regID,uint8_t typeID,uint8_t * data,uint16
 
             case MC_REG_ENCODER_EL_ANGLE:
             {
-              *regdata16 = SPD_GetElAngle ((SpeednPosFdbk_Handle_t*) &ENCODER_M1); //cstat !MISRAC2012-Rule-11.3
+              //*regdata16 = SPD_GetElAngle ((SpeednPosFdbk_Handle_t*) &ENCODER_M1); //cstat !MISRAC2012-Rule-11.3
               break;
             }
 
             case MC_REG_ENCODER_SPEED:
             {
-              *regdata16 = SPD_GetS16Speed ((SpeednPosFdbk_Handle_t*) &ENCODER_M1); //cstat !MISRAC2012-Rule-11.3
+              //*regdata16 = SPD_GetS16Speed ((SpeednPosFdbk_Handle_t*) &ENCODER_M1); //cstat !MISRAC2012-Rule-11.3
               break;
             }
 
@@ -1417,13 +1417,13 @@ __weak uint8_t RI_GetPtrReg(uint16_t dataID, void **dataPtr)
 
           case MC_REG_ENCODER_SPEED:
           {
-            *dataPtr = &((&ENCODER_M1)->_Super.hAvrMecSpeedUnit);
+            //*dataPtr = &((&ENCODER_M1)->_Super.hAvrMecSpeedUnit);
             break;
           }
 
           case MC_REG_ENCODER_EL_ANGLE:
           {
-            *dataPtr = &((&ENCODER_M1)->_Super.hElAngle);
+            //*dataPtr = &((&ENCODER_M1)->_Super.hElAngle);
             break;
           }
 
