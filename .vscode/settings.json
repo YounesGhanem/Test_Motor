@@ -23,7 +23,8 @@
         "mc_parameters.h": "c",
         "speed_pos_fdbk.h": "c",
         "mc_type.h": "c",
-        "hall_align_ctrl.h": "c"
+        "hall_align_ctrl.h": "c",
+        "circle_limitation.h": "c"
     },
     "cortex-debug.variableUseNaturalFormat": false
 }
