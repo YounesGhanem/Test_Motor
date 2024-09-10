@@ -157,7 +157,14 @@ __weak int16_t ENC_CalcAngle(ENCODER_Handle_t *pHandle)
     int32_t wtemp1;
     /* PR 52926 We need to keep only the 16 LSB, bit 31 could be at 1
      if the overflow occurs just after the entry in the High frequency task */
-    uwtemp1 = (LL_TIM_GetCounter(pHandle->TIMx) & 0xffffU) * (pHandle->U32MAXdivPulseNumber);
+
+     // Note: Map the number of 
+    uwtemp1 = (LL_TIM_GetCounter(pHandle->TIMx) & 0xffffU) * (pHandle->U32MAXdivPulseNumber); // (UINT32)/(pulse/rev)
+
+    /*This ensures that the raw pulse counts from the encoder are scaled down 
+     to represent the motor's mechanical angle in a 32-bit space,
+    providing a very fine resolution while maintaining precision across 
+    the full range of possible rotations.*/
 #ifndef FULL_MISRA_C_COMPLIANCY_ENC_SPD_POS
     wtemp1 = (int32_t)uwtemp1 >> 16U;  //cstat !MISRAC2012-Rule-1.3_n !ATH-shift-neg !MISRAC2012-Rule-10.1_R6
 #else

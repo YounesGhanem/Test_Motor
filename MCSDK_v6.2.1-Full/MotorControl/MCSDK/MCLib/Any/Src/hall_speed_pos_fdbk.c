@@ -135,44 +135,36 @@ void HALL_ClarkeTransform(const HALL_Signals_t* hallSignals, ClarkTransform_t *c
   */
 __weak int16_t HALL_CalcAngle(HALL_Handle_t *pHandle)
 {
-  int16_t elAngle;  /* s16degree format */
-  int16_t mecAngle; /* s16degree format */
-  //uint32_t uwtemp1;
-  //int32_t wtemp1;
+    int16_t elAngle;  /* s16degree format */
+    int16_t mecAngle; /* s16degree format */
 
-//   /* PR 52926 We need to keep only the 16 LSB, bit 31 could be at 1
-//     if the overflow occurs just after the entry in the High frequency task */
-//     uwtemp1 = (LL_TIM_GetCounter(pHandle->TIMx) & 0xffffU) * (pHandle->U32MAXdivPulseNumber);
-// #ifndef FULL_MISRA_C_COMPLIANCY_ENC_SPD_POS
-//     wtemp1 = (int32_t)uwtemp1 >> 16U;  //cstat !MISRAC2012-Rule-1.3_n !ATH-shift-neg !MISRAC2012-Rule-10.1_R6
-// #else
-//     wtemp1 = (int32_t)uwtemp1 / 65536;
-// #endif
-    /* Computes and stores the rotor mechanical angle */
+    // 1. Get Hall sensor state and convert to electrical angle
+    uint8_t hallState = getHallState(pHandle->hallSignals);
+    elAngle = HallStateToAngle(hallState);  // Use a lookup table or logic to map hallState to angle
 
-HALL_ClarkeTransform(pHandle->hallSignals, pHandle->clarkTransform);  // all signals already calculated in Timer
+    // 2. Convert elAngle from radians to s16degree if needed
+    elAngle = (int16_t)((elAngle * 65536) / (2 * M_PI));
 
-elAngle = atan2f(pHandle->clarkTransform->beta, pHandle->clarkTransform->alpha);
+    // 3. Compute mechanical angle using the ratio
+    mecAngle = elAngle / (int16_t)(pHandle->_Super.bElToMecRatio);
 
-mecAngle = elAngle/ (int16_t)(pHandle->_Super.bElToMecRatio);
+    // Save previous angle
+    int16_t hMecAnglePrev = pHandle->_Super.hMecAngle;
 
-//Save previous angle
-int16_t hMecAnglePrev = pHandle->_Super.hMecAngle;
+    // Update current mechanical angle
+    pHandle->_Super.hMecAngle = mecAngle;
 
-//update current angle
-pHandle->_Super.hMecAngle = mecAngle;
+    // Calculate instantaneous mechanical speed
+    int16_t hMecSpeedDpp = mecAngle - hMecAnglePrev;
+    pHandle->_Super.wMecAngle += ((int32_t)hMecSpeedDpp);
 
-//instantaneous mechanical speed (hMecSpeedDpp)
-int16_t hMecSpeedDpp = mecAngle - hMecAnglePrev;
-//   /*Returns rotor electrical angle*/
+    // Update electrical angle in structure
+    pHandle->_Super.hElAngle = elAngle;
 
-pHandle->_Super.wMecAngle += ((int32_t)hMecSpeedDpp);
-
-// Update el value in struct
-pHandle->_Super.hElAngle = elAngle;
-
-return (elAngle);
+    // Return the electrical angle
+    return elAngle;
 }
+
 
 __weak bool HALL_CalcAvrgMecSpeedUnit(HALL_Handle_t *pHandle, int16_t *pMecSpeedUnit)
 {
