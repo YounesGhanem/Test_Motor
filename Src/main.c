@@ -120,23 +120,29 @@ int main(void)
   MX_TIM4_Init();
   MX_ADC3_Init();
 
+
+
   /* Initialize interrupts */
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
-  if(HAL_ADCEx_Calibration_Start(&hadc3,  ADC_SINGLE_ENDED) != HAL_OK)
-	Error_Handler();
-
-  if(HAL_ADC_Start_IT(&hadc3) != HAL_OK)
-	   Error_Handler();
-
-  // // start pwm generation
-  if(HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1) != HAL_OK)
-	   Error_Handler();
+   if(HAL_ADCEx_Calibration_Start(&hadc3,  ADC_SINGLE_ENDED) != HAL_OK)
+	 Error_Handler();
 
   if (HAL_ADC_Start_DMA(&hadc3, (uint32_t*)(&HALL_M1.adcRawValue), 3) != HAL_OK)
   {
     Error_Handler();
   }
+
+  // if(HAL_ADC_Start_IT(&hadc3) != HAL_OK)
+	//    Error_Handler();
+
+  // // start pwm generation
+  if(HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1) != HAL_OK)
+	   Error_Handler();
+
+  //HAL_ADC_Stop_DMA(&hadc3);
+
+
 
   /* USER CODE END 2 */
 
@@ -428,7 +434,7 @@ static void MX_ADC3_Init(void)
   hadc3.Init.DiscontinuousConvMode = DISABLE;
   hadc3.Init.ExternalTrigConv = ADC_EXTERNALTRIG_T4_TRGO;
   hadc3.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
-  hadc3.Init.DMAContinuousRequests = DISABLE;
+  hadc3.Init.DMAContinuousRequests = ENABLE; //DISABLE;
   hadc3.Init.Overrun = ADC_OVR_DATA_PRESERVED;
   hadc3.Init.OversamplingMode = DISABLE;
   if (HAL_ADC_Init(&hadc3) != HAL_OK)
@@ -452,6 +458,7 @@ static void MX_ADC3_Init(void)
   /** Configure Regular Channel
   */
   sConfig.Rank = ADC_REGULAR_RANK_2;
+  sConfig.Channel = ADC_CHANNEL_2;
   if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -460,6 +467,7 @@ static void MX_ADC3_Init(void)
   /** Configure Regular Channel
   */
   sConfig.Rank = ADC_REGULAR_RANK_3;
+  sConfig.Channel = ADC_CHANNEL_3;
   if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
   {
     Error_Handler();
