@@ -76,16 +76,61 @@ extern TIM_HandleTypeDef htim6;
 /**
   * @brief This function handles DMA1 channel3 global interrupt.
   */
+
+#define tests
+#ifdef tests
+static uint32_t count = 0;
+uint32_t storedInterrupt[10];
+uint32_t lastValue;
+#endif
+
+
+
 void DMA1_Channel3_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Channel3_IRQn 0 */
+#ifdef tests
+  // Obtenir la valeur actuelle du compteur de cycles
+  uint32_t currentValue = DWT->CYCCNT;
 
+  // Si c'est la première interruption, simplement initialiser lastValue
+  if (lastValue == 0)
+  {
+    lastValue = currentValue;
+  }
+  else
+  {
+    // Vérifier si le compteur a débordé (currentValue < lastValue)
+    if (currentValue >= lastValue)
+    {
+      // Pas de débordement
+      storedInterrupt[count] = currentValue - lastValue;
+    }
+    else
+    {
+      // Gestion du débordement
+      storedInterrupt[count] = (0xFFFFFFFF - lastValue) + currentValue + 1;
+    }
+
+    // Mettre à jour lastValue pour la prochaine interruption
+    lastValue = currentValue;
+
+    // Incrémenter le compteur et gérer le débordement du tableau
+    count++;
+    if (count >= 10)
+    {
+      count = 0; // Retour à zéro si le tableau est plein
+    }
+  }
+#endif
   /* USER CODE END DMA1_Channel3_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_adc3);
   /* USER CODE BEGIN DMA1_Channel3_IRQn 1 */
-
   /* USER CODE END DMA1_Channel3_IRQn 1 */
 }
+
+
+
 
 /**
   * @brief This function handles TIM6 global interrupt, DAC channel1 and channel2 underrun error interrupts.

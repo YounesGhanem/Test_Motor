@@ -69,6 +69,8 @@ static void MX_TIM3_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_ADC3_Init(void);
+//use data watchpoint and Trace
+static void start_DWT_Init(void);
 void startMediumFrequencyTask(void const * argument);
 extern void StartSafetyTask(void const * argument);
 
@@ -119,7 +121,7 @@ int main(void)
   MX_MotorControl_Init();
   MX_TIM4_Init();
   MX_ADC3_Init();
-
+start_DWT_Init();
 
 
   /* Initialize interrupts */
@@ -189,6 +191,13 @@ int main(void)
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
+}
+
+static void start_DWT_Init(void)
+{
+  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;  // Activate tracer DWT
+  DWT->CYCCNT = 0;  // Reinitialize counter
+  DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;  // Activate cycles counter
 }
 
 /**
