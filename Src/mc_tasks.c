@@ -795,7 +795,7 @@ __weak uint8_t TSK_HighFrequencyTask(void)
 
   /* USER CODE END HighFrequencyTask 0 */
 
-  (void)ENC_CalcAngle(&ENCODER_M1);   /* If not sensorless then 2nd parameter is MC_NULL */
+  //(void)ENC_CalcAngle(&ENCODER_M1);   /* If not sensorless then 2nd parameter is MC_NULL */
   (void)HALL_CalcAngle(&HALL_M1);
 
   /* USER CODE BEGIN HighFrequencyTask SINGLEDRIVE_1 */

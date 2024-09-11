@@ -130,7 +130,7 @@ start_DWT_Init();
    if(HAL_ADCEx_Calibration_Start(&hadc3,  ADC_SINGLE_ENDED) != HAL_OK)
 	 Error_Handler();
 
-  if (HAL_ADC_Start_DMA(&hadc3, (uint32_t*)(&HALL_M1.adcRawValue), 3) != HAL_OK)
+  if (HAL_ADC_Start_DMA(&hadc3, (uint32_t*)(HALL_M1.hallSignals), 3) != HAL_OK)
   {
     Error_Handler();
   }
