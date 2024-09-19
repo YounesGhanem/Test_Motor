@@ -108,7 +108,7 @@ void HALL_Clear(HALL_Handle_t *pHandle);
 
 /* It calculates the rotor electrical and mechanical angle, on the basis
  * of the instantaneous value of the timer counter */
-int16_t HALL_CalcAngle(HALL_Handle_t *pHandle);
+void HALL_CalcAngle(HALL_Handle_t *pHandle);
 
 /* The method generates a capture event on a channel, computes & stores average mechanical speed */
 bool HALL_CalcAvrgMecSpeedUnit(HALL_Handle_t *pHandle, int16_t *pMecSpeedUnit);
@@ -116,7 +116,7 @@ bool HALL_CalcAvrgMecSpeedUnit(HALL_Handle_t *pHandle, int16_t *pMecSpeedUnit);
 /* It set instantaneous rotor mechanical angle */
 void HALL_SetMecAngle(HALL_Handle_t *pHandle, int16_t hMecAngle);
 
-void HALL_ClarkeTransform(const HALL_Signals_t* hallSignals, ClarkTransform_t *clarkeTransform);
+int16_t HALL_ClarkeTransform(const HALL_Signals_t* hallSignals, ClarkTransform_t *clarkeTransform);
 
 
 /**
