@@ -840,7 +840,6 @@ inline uint16_t FOC_CurrControllerM1(void)
   SpeednPosFdbk_Handle_t *speedHandle;
   speedHandle = STC_GetSpeedSensor(pSTC[M1]);
   hElAngle = SPD_GetElAngle(speedHandle);
-  temp = hElAngle;
   PWMC_GetPhaseCurrents(pwmcHandle[M1], &Iab);
   Ialphabeta = MCM_Clarke(Iab);
   Iqd = MCM_Park(Ialphabeta, hElAngle);
