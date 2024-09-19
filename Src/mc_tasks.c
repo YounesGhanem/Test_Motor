@@ -839,7 +839,6 @@ inline uint16_t FOC_CurrControllerM1(void)
   uint16_t hCodeError;
   SpeednPosFdbk_Handle_t *speedHandle;
   speedHandle = STC_GetSpeedSensor(pSTC[M1]);
-  volatile int16_t temp;
   hElAngle = SPD_GetElAngle(speedHandle);
   temp = hElAngle;
   PWMC_GetPhaseCurrents(pwmcHandle[M1], &Iab);

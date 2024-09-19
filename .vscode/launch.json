@@ -8,7 +8,7 @@
       {
         "cwd": "${workspaceFolder}",
         "executable": "./build/Test_Motor.elf",
-        "name": "Debug STM32F103 openOCD",
+        "name": "Debug Target",
         "request": "launch",
         "type": "cortex-debug",
         "servertype": "openocd",
