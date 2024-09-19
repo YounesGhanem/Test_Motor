@@ -80,6 +80,7 @@ pHandle->hallSignals = malloc(sizeof(HALL_Signals_t));
 if (pHandle->hallSignals == NULL)
 {
     // Gérer l'erreur d'allocation mémoire
+    
 }
         
         /* Configure ADC parameter if necessary */
@@ -129,11 +130,12 @@ __weak void HALL_Clear(HALL_Handle_t *pHandle)
 // Constants for converting angle to s16 representation
 #define S16_MAX 32767  // Max value for s16degree format (representing +/-180 degrees)
 #define TWO_PI 6.28318530718f  // 2*pi
+#define PI 3.14159265359f  // Pi constant
 
-void HALL_ClarkeTransform(const HALL_Signals_t* hallSignals, ClarkTransform_t *clarkeTransform) {
+int16_t  HALL_ClarkeTransform(const HALL_Signals_t* hallSignals, ClarkTransform_t *clarkeTransform) {
     // Convert raw ADC values to voltages (Vadc)
-    float Vadc_a = (hallSignals->Hall_a / ADC_MAX) * VREF;
-    float Vadc_b = (hallSignals->Hall_b / ADC_MAX) * VREF;
+    float Vadc_a = (hallSignals->Hall_a / ADC_MAX) * VREF +0.16;
+    float Vadc_b = (hallSignals->Hall_b / ADC_MAX) * VREF +0.16;
     float Vadc_c = (hallSignals->Hall_c / ADC_MAX) * VREF;
 
     // Apply the voltage divider to get the actual analog voltages (Vanalog_hall)
@@ -146,25 +148,41 @@ void HALL_ClarkeTransform(const HALL_Signals_t* hallSignals, ClarkTransform_t *c
     clarkeTransform->beta = (2.0f / 3.0f) * ((Vhall_b - Vhall_c) * sqrtf(3.0f) / 2.0f);
 
     // Calculate the angle using atan2 and convert it to s16degree representation
-    //float angle_float = atan2f(clarkeTransform->beta, clarkeTransform->alpha);
-    
-    // Map the angle from [-pi, pi] to [-32768, 32767] for s16degree representation
-    //int16_t angle_s16 = (int16_t)((angle_float / TWO_PI) * S16_MAX);
+    float angle_radians = atan2f(clarkeTransform->beta, clarkeTransform->alpha);
 
-    // Store the angle as an s16degree integer
-    //clarkeTransform->angle = angle_s16;
+      // Convert from [-π, π] to [0, 2π] by adding 2π to negative angles
+    if (angle_radians < 0) 
+    {
+        angle_radians += TWO_PI;
+    }
+
+    // Map the angle from [0, π] to [0, 32767], and from [π, 2π] to [-32767, 0]
+    int16_t angle_s16;
+    if (angle_radians <= PI) 
+    {
+      // From 0 to π: positive s16degree values
+      angle_s16 = (int16_t)((angle_radians * S16_MAX) / PI);
+    } 
+    else 
+    {
+    // From π to 2π: negative s16degree values
+    angle_s16 = (int16_t)(((angle_radians - TWO_PI) * S16_MAX) / PI);
+    }
+
+    return angle_s16;
+
+    
 }
 
 
-__weak int16_t HALL_CalcAngle(HALL_Handle_t *pHandle) {
+__weak void HALL_CalcAngle(HALL_Handle_t *pHandle) {
     int16_t elAngle;  // s16degree format
     int16_t mecAngle; // s16degree format
 
     // Call the Clarke Transform function to calculate alpha and beta
-    HALL_ClarkeTransform(pHandle->hallSignals, pHandle->clarkTransform);  // all signals already calculated in Timer
-
-    // Calculate the electrical angle using atan2 (radians) and convert it to s16degree format
-    elAngle = (int16_t)((atan2f(pHandle->clarkTransform->beta, pHandle->clarkTransform->alpha) / TWO_PI) * S16_MAX);
+    // Get the electrical angle from Clarke Transform (in s16degree format)
+    // Assign the calculated electrical angle to hElAngle in SpeednPosFdbk_Handle_t
+    pHandle->_Super.hElAngle = HALL_ClarkeTransform(pHandle->hallSignals, pHandle->clarkTransform);  // all signals already calculated in Timer
 
     // Calculate mechanical angle by dividing electrical angle by the ratio
     mecAngle = elAngle / (int16_t)(pHandle->_Super.bElToMecRatio);
@@ -181,11 +199,7 @@ __weak int16_t HALL_CalcAngle(HALL_Handle_t *pHandle) {
     // Accumulate mechanical angle in 32-bit to avoid overflow
     pHandle->_Super.wMecAngle += ((int32_t)hMecSpeedDpp);
 
-    // Update the electrical angle in the struct
-    pHandle->_Super.hElAngle = elAngle;
 
-    // Return the electrical angle in s16degree format
-    return elAngle;
 }
 
 
@@ -269,38 +283,38 @@ __weak bool HALL_CalcAvrgMecSpeedUnit(HALL_Handle_t *pHandle, int16_t *pMecSpeed
 // 1 s16 corrresponds to 360 / 65536 = 0.005493 degree or 2*pi / 655536 radians
 __weak void HALL_SetMecAngle(HALL_Handle_t *pHandle, int16_t hMecAngle)
 {
-#ifdef NULL_PTR_CHECK_ENC_SPD_POS_FDB
-  if (NULL == pHandle)
-  {
-    /* Nothing to do */
-  }
-  else
-  {
-#endif
+// #ifdef NULL_PTR_CHECK_ENC_SPD_POS_FDB
+//   if (NULL == pHandle)
+//   {
+//     /* Nothing to do */
+//   }
+//   else
+//   {
+// #endif
     //TIM_TypeDef *TIMx = pHandle->TIMx;
 
 
     int16_t localhMecAngle = hMecAngle;  // Instantaneous measure of rotor mechanical angle
-    uint16_t hMecAngleuint;
+    //uint16_t hMecAngleuint;
 
     pHandle->_Super.hMecAngle = localhMecAngle;
     pHandle->_Super.hElAngle = localhMecAngle * (int16_t)pHandle->_Super.bElToMecRatio;
-    if (localhMecAngle < 0)
-    {
-      localhMecAngle *= -1;
-      hMecAngleuint = ((uint16_t)65535 - ((uint16_t)localhMecAngle));
-    }
-    else
-    {
-      hMecAngleuint = (uint16_t)localhMecAngle;
-    }
+    // if (localhMecAngle < 0)
+    // {
+    //   localhMecAngle *= -1;
+    //   hMecAngleuint = ((uint16_t)65535 - ((uint16_t)localhMecAngle));
+    // }
+    // else
+    // {
+    //   hMecAngleuint = (uint16_t)localhMecAngle;
+    // }
 
     //hAngleCounts = (uint16_t)((((uint32_t)hMecAngleuint) * ((uint32_t)pHandle->PulseNumber)) / 65535U);  //TODO
 
     //TIMx->CNT = (uint16_t)hAngleCounts;
-#ifdef NULL_PTR_CHECK_ENC_SPD_POS_FDB
-  }
-#endif
+// #ifdef NULL_PTR_CHECK_ENC_SPD_POS_FDB
+//   }
+// #endif
 }
 
 /**

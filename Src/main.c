@@ -56,7 +56,6 @@ DMA_HandleTypeDef hdma_usart2_tx;
 osThreadId mediumFrequencyHandle;
 osThreadId safetyHandle;
 /* USER CODE BEGIN PV */
- static uint16_t adcRawVal[3] = {0};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -121,7 +120,7 @@ int main(void)
   MX_MotorControl_Init();
   MX_TIM4_Init();
   MX_ADC3_Init();
-start_DWT_Init();
+  start_DWT_Init();
 
 
   /* Initialize interrupts */

@@ -208,8 +208,7 @@ __weak void MCboot( MCI_Handle_t* pMCIList[NBR_OF_MOTORS] )
     FOCVars[M1].Iqdref = STC_GetDefaultIqdref(pSTC[M1]);
     FOCVars[M1].UserIdref = STC_GetDefaultIqdref(pSTC[M1]).d;
     MCI_Init(&Mci[M1], pSTC[M1], &FOCVars[M1], pPosCtrl[M1], pwmcHandle[M1]);
-   Mci[M1].pScale = &scaleParams_M1;
-
+    Mci[M1].pScale = &scaleParams_M1;
     MCI_ExecSpeedRamp(&Mci[M1],
     STC_GetMecSpeedRefUnitDefault(pSTC[M1]),0); /* First command to STC */
     pMCIList[M1] = &Mci[M1];
@@ -430,6 +429,7 @@ __weak void TSK_MediumFrequencyTaskM1(void)
         }
 
         case CHARGE_BOOT_CAP:
+        // Wait until boot strap capcitor charge correctly
         {
           if (MCI_STOP == Mci[M1].DirectCommand)
           {
@@ -443,7 +443,6 @@ __weak void TSK_MediumFrequencyTaskM1(void)
               FOCVars[M1].bDriveInput = EXTERNAL;
               STC_SetSpeedSensor( pSTC[M1], &VirtualSpeedSensorM1._Super );
               HALL_Clear(&HALL_M1);
-              //ENC_Clear(&ENCODER_M1);
               FOC_Clear( M1 );
 
               if (HAC_IsAligned(&HallAlignCtrlM1) == false)
@@ -461,22 +460,6 @@ __weak void TSK_MediumFrequencyTaskM1(void)
                 MCI_ExecBufferedCommands(&Mci[M1]); /* Exec the speed ramp after changing of the speed sensor */
                 Mci[M1].State = RUN;  
               }
-
-              // if (EAC_IsAligned(&EncAlignCtrlM1) == false)
-              // {
-              //   EAC_StartAlignment(&EncAlignCtrlM1);
-              //   Mci[M1].State = ALIGNMENT;
-              // }
-              // else
-              // {
-              //   STC_SetControlMode(pSTC[M1], MCM_SPEED_MODE);
-              //   STC_SetSpeedSensor(pSTC[M1], &ENCODER_M1._Super);
-              //   FOC_InitAdditionalMethods(M1);
-              //   FOC_CalcCurrRef(M1);
-              //   STC_ForceSpeedReferenceToCurrentSpeed(pSTC[M1]); /* Init the reference speed to current speed */
-              //   MCI_ExecBufferedCommands(&Mci[M1]); /* Exec the speed ramp after changing of the speed sensor */
-              //   Mci[M1].State = RUN;
-              // }
               PWMC_SwitchOnPWM(pwmcHandle[M1]);
             }
             else
@@ -495,10 +478,8 @@ __weak void TSK_MediumFrequencyTaskM1(void)
           }
           else
           {
-           //bool isAligned = EAC_IsAligned(&EncAlignCtrlM1);
             bool isAligned = HAC_IsAligned(&HallAlignCtrlM1);
-            //bool EACDone = EAC_Exec(&EncAlignCtrlM1);
-            bool HACDone = HAC_Exec(&HallAlignCtrlM1);
+            bool HACDone = HAC_Exec(&HallAlignCtrlM1);  //setAngle
             if ((isAligned == false)  && (HACDone == false))
             {
               qd_t IqdRef;
@@ -858,7 +839,9 @@ inline uint16_t FOC_CurrControllerM1(void)
   uint16_t hCodeError;
   SpeednPosFdbk_Handle_t *speedHandle;
   speedHandle = STC_GetSpeedSensor(pSTC[M1]);
+  volatile int16_t temp;
   hElAngle = SPD_GetElAngle(speedHandle);
+  temp = hElAngle;
   PWMC_GetPhaseCurrents(pwmcHandle[M1], &Iab);
   Ialphabeta = MCM_Clarke(Iab);
   Iqd = MCM_Park(Ialphabeta, hElAngle);
@@ -938,7 +921,7 @@ __weak void TSK_SafetyTask_PWMOFF(uint8_t bMotor)
     /* Nothing to do */
   }
   MCI_FaultProcessing(&Mci[bMotor], CodeReturn, ~CodeReturn); /* Process faults */
-
+  //volatile uint32_t temp = MCI_GetFaultState(&Mci[bMotor]);
   if (MCI_GetFaultState(&Mci[bMotor]) != (uint32_t)MC_NO_FAULTS)
   {
     /* Reset Encoder state */
