@@ -115,7 +115,7 @@ int main(void)
   MX_DMA_Init();
   MX_ADC1_Init();
   MX_TIM1_Init();
-  MX_TIM3_Init();
+  //MX_TIM3_Init(); For encoder
   MX_USART2_UART_Init();
   MX_MotorControl_Init();
   MX_TIM4_Init();

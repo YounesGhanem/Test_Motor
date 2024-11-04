@@ -114,6 +114,13 @@ if (pHandle->hallSignals == NULL)
 __weak void HALL_Clear(HALL_Handle_t *pHandle)
 {
 
+    uint8_t index = 0;
+
+    for (index =0U; index < pHandle->SpeedBufferSize ; index++)
+    {
+      pHandle->AngleCapturesBuffer[index] = 0;
+    }
+
     pHandle->SensorIsReliable = true;
 
     
@@ -123,9 +130,9 @@ __weak void HALL_Clear(HALL_Handle_t *pHandle)
 // Define constants for ADC conversion and voltage divider
 #define VREF 3.3f
 #define ADC_MAX 4095.0f  // For 12-bit ADC
-#define R1 3900.0f  // Resistance in ohms
-#define R2 3000.0f  // Resistance in ohms
-#define R3 10000.0f // Resistance in ohms
+#define R1 10000.0f  // Resistance in ohms
+#define R2 30000.0f  // Resistance in ohms
+// #define R3 10000.0f // Resistance in ohms
 
 // Constants for converting angle to s16 representation
 #define S16_MAX 32767  // Max value for s16degree format (representing +/-180 degrees)
@@ -134,40 +141,48 @@ __weak void HALL_Clear(HALL_Handle_t *pHandle)
 
 int16_t  HALL_ClarkeTransform(const HALL_Signals_t* hallSignals, ClarkTransform_t *clarkeTransform) {
     // Convert raw ADC values to voltages (Vadc)
-    float Vadc_a = (hallSignals->Hall_a / ADC_MAX) * VREF +0.16;
-    float Vadc_b = (hallSignals->Hall_b / ADC_MAX) * VREF +0.16;
+    float Vadc_a = (hallSignals->Hall_a / ADC_MAX) * VREF;
+    float Vadc_b = (hallSignals->Hall_b / ADC_MAX) * VREF ;
     float Vadc_c = (hallSignals->Hall_c / ADC_MAX) * VREF;
 
     // Apply the voltage divider to get the actual analog voltages (Vanalog_hall)
-    float Vhall_a = (Vadc_a - 3.3f * (R2 / (R1 + R3))) * ((R1 + R3) / R3);
-    float Vhall_b = (Vadc_b - 3.3f * (R2 / (R1 + R3))) * ((R1 + R3) / R3);
-    float Vhall_c = (Vadc_c - 3.3f * (R2 / (R1 + R3))) * ((R1 + R3) / R3);
+    float Vhall_a = Vadc_a * ( R1 / R2 + 1);
+    float Vhall_b = Vadc_b * ( R1 / R2 + 1);
+    float Vhall_c = Vadc_c * ( R1 / R2 + 1);
+
 
     // Clarke Transformation using the corrected analog voltages
     clarkeTransform->alpha = (2.0f / 3.0f) * (Vhall_a - 0.5f * (Vhall_b + Vhall_c));
-    clarkeTransform->beta = (2.0f / 3.0f) * ((Vhall_b - Vhall_c) * sqrtf(3.0f) / 2.0f);
+    clarkeTransform->beta = (Vhall_b - Vhall_c) * sqrtf(3.0f) / 3.0f;
 
     // Calculate the angle using atan2 and convert it to s16degree representation
     float angle_radians = atan2f(clarkeTransform->beta, clarkeTransform->alpha);
 
       // Convert from [-π, π] to [0, 2π] by adding 2π to negative angles
-    if (angle_radians < 0) 
-    {
-        angle_radians += TWO_PI;
-    }
+     if (angle_radians < 0) 
+     {
+         angle_radians += TWO_PI;
+     }
+     else
+     {
 
-    // Map the angle from [0, π] to [0, 32767], and from [π, 2π] to [-32767, 0]
-    int16_t angle_s16;
-    if (angle_radians <= PI) 
-    {
-      // From 0 to π: positive s16degree values
-      angle_s16 = (int16_t)((angle_radians * S16_MAX) / PI);
+     }
+
+    // // Map the angle from [0, π] to [0, 32767], and from [π, 2π] to [-32767, 0]
+     int16_t angle_s16;
+     if (angle_radians <= PI) 
+     {
+       // From 0 to π: positive s16degree values
+       angle_s16 = (int16_t)((angle_radians * S16_MAX) / PI);
     } 
-    else 
-    {
-    // From π to 2π: negative s16degree values
-    angle_s16 = (int16_t)(((angle_radians - TWO_PI) * S16_MAX) / PI);
-    }
+     else 
+     {
+     // From π to 2π: negative s16degree values
+     angle_s16 = (int16_t)(((angle_radians - TWO_PI) * S16_MAX) / PI);
+     }
+
+
+    //int16_t angle_S16 = (int16_t)(angle_radians * 65536 / TWO_PI );
 
     return angle_s16;
 
@@ -175,16 +190,20 @@ int16_t  HALL_ClarkeTransform(const HALL_Signals_t* hallSignals, ClarkTransform_
 }
 
 
-__weak void HALL_CalcAngle(HALL_Handle_t *pHandle) {
+__weak void HALL_CalcAngle(HALL_Handle_t *pHandle) 
+{
     int16_t elAngle;  // s16degree format
     int16_t mecAngle; // s16degree format
+    alphabeta_t Ialphabeta;
 
     // Call the Clarke Transform function to calculate alpha and beta
     // Get the electrical angle from Clarke Transform (in s16degree format)
     // Assign the calculated electrical angle to hElAngle in SpeednPosFdbk_Handle_t
-    pHandle->_Super.hElAngle = HALL_ClarkeTransform(pHandle->hallSignals, pHandle->clarkTransform);  // all signals already calculated in Timer
+    //Ialphabeta = MCM_Clarke(Iab);
+    elAngle = HALL_ClarkeTransform(pHandle->hallSignals, pHandle->clarkTransform);  // all signals already calculated in Timer
 
     // Calculate mechanical angle by dividing electrical angle by the ratio
+    pHandle->_Super.hElAngle = elAngle;
     mecAngle = elAngle / (int16_t)(pHandle->_Super.bElToMecRatio);
 
     // Save the previous mechanical angle
@@ -234,8 +253,6 @@ __weak bool HALL_CalcAvrgMecSpeedUnit(HALL_Handle_t *pHandle, int16_t *pMecSpeed
         /* Calculate average speed */
       wtemp1 = wOverallAngleVariation * ((int32_t)pHandle->SpeedSamplingFreqUnit);    //variation per second
       wtemp1 /= (int32_t)(pHandle->SpeedBufferSize);          //rev/s -> Hz (tenth of Hz)
-
-
 
       *pMecSpeedUnit = (int16_t)wtemp1; // tenth of Hz
 

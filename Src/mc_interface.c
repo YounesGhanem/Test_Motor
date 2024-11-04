@@ -1697,7 +1697,7 @@ __weak int16_t MCI_GetPhaseCurrentAmplitude(MCI_Handle_t *pHandle) //cstat !MISR
   * @param  pHandle Pointer on the component instance to work on.
   * @retval int16_t Motor phase voltage (0-to-peak) in s16V
   */
-__weak int16_t MCI_GetPhaseVoltageAmplitude(MCI_Handle_t *pHandle) //cstat !MISRAC2012-Rule-8.13
+ __weak int16_t MCI_GetPhaseVoltageAmplitude(MCI_Handle_t *pHandle) //cstat !MISRAC2012-Rule-8.13
 {
   int16_t temp_wAux;
 #ifdef NULL_PTR_CHECK_MC_INT

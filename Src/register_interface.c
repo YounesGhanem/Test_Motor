@@ -924,7 +924,7 @@ uint8_t RI_GetRegisterGlobal(uint16_t regID,uint8_t typeID,uint8_t * data,uint16
 
             case MC_REG_ENCODER_SPEED:
             {
-              //*regdata16 = SPD_GetS16Speed ((SpeednPosFdbk_Handle_t*) &ENCODER_M1); //cstat !MISRAC2012-Rule-11.3
+              *regdata16 = SPD_GetS16Speed ((SpeednPosFdbk_Handle_t*) &HALL_M1); //cstat !MISRAC2012-Rule-11.3
               break;
             }
 
